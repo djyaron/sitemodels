@@ -163,7 +163,7 @@ with open('randomFits.txt','w') as outf:
                 plt.savefig('thio_rg_cos%d%r.eps'%(cos_pow,end_diff))
             
     if do_discrete_fits:
-        for end_diff in [True]:
+        for end_diff in [False]:
         
             plt.figure(1)
             plt.clf()

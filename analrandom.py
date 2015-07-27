@@ -115,6 +115,9 @@ e4  = exc[:,3]
 do_cos_fits = True
 do_discrete_fits = True
 do_model3 = True
+fmts = ['r', 'b', 'g']
+
+
 with open('randomFits.txt', 'w') as outf:
 
     exc = np.loadtxt(open('thio_uniform.csv', 'r'), delimiter=",")
@@ -150,7 +153,6 @@ with open('randomFits.txt', 'w') as outf:
 
                 plt.figure(1)
                 plt.clf()
-                fmts = ['r', 'b', 'g']
 
                 for i in xrange(1, 4):
                     plt.plot(exc[:, 0], exc[:, i], fmts[i - 1] +
@@ -195,7 +197,6 @@ with open('randomFits.txt', 'w') as outf:
 
             plt.figure(1)
             plt.clf()
-            fmts = ['r', 'b', 'g']
 
             for i in xrange(1, 4):
                 plt.plot(exc[:, 0], exc[:, i], fmts[i - 1] +
@@ -238,7 +239,6 @@ with open('randomFits.txt', 'w') as outf:
 
             plt.figure(1)
             plt.clf()
-            fmts = ['r', 'b', 'g']
 
             for i in xrange(1, 4):
                 plt.plot(exc[:, 0], exc[:, i], fmts[i - 1] +

@@ -15,7 +15,7 @@ from numpy import linalg as LA
 #%%
 
 def model1(dataOligomer, pars):
-    parvals = pars.valuesdict();
+    parvals = pars.valuesdict()
     alpha = parvals['alpha']
     endRaise =parvals['delta']
     beta  = parvals['beta']
@@ -32,7 +32,7 @@ def model1(dataOligomer, pars):
     return np.min(evals[0])
 
 def model3(dataOligomer, pars):
-    parvals = pars.valuesdict();
+    parvals = pars.valuesdict()
     alpha = parvals['alpha']
     endRaise =parvals['delta']
     const = parvals['const']
@@ -62,7 +62,7 @@ def angle_to_coupling(theta,betas):
 
 
 def model2(dataOligomer, pars):
-    parvals = pars.valuesdict();
+    parvals = pars.valuesdict()
     alpha = parvals['alpha']
     endRaise =parvals['delta']
     betas = []
@@ -167,15 +167,15 @@ with open('randomFits.txt','w') as outf:
                 residual1 = partial(residual, model1)
                 fit_result = minimize(residual1, pars, args=([], fitData, []))
                 if end_diff == False:
-                    parvals = pars.valuesdict();
+                    parvals = pars.valuesdict()
                     beta_res[cos_pow-1] = parvals['beta']
 
                 name = 'Thiophene: cos power=%d, delta varied=%r\n' % (cos_pow,end_diff)
                 write_statistics(name, outf, pars, fit_result)
 
                 for nolig in range(2,5):
-                    x = [];
-                    y = [];
+                    x = []
+                    y = []
                     for ang in range(0,361,1):
                         x.append(ang)
                         d = {'angles' : np.full(nolig-1, ang)}
@@ -208,15 +208,15 @@ with open('randomFits.txt','w') as outf:
 
             residual3 = partial(residual, model3)
             fit_result = minimize(residual3, pars, args=([], fitData, []))
-            parvals = pars.valuesdict();
+            parvals = pars.valuesdict()
             beta_mod3 = (parvals['const'], parvals['beta'], parvals['beta2'])
 
             name = 'Thiophene model3: delta varied=%r\n' % end_diff
             write_statistics(name, outf, pars, fit_result)
 
             for nolig in range(2,5):
-                x = [];
-                y = [];
+                x = []
+                y = []
                 for ang in range(0,361,10):
                     x.append(ang)
                     d = {'angles' : np.full(nolig-1, ang)}
@@ -253,8 +253,8 @@ with open('randomFits.txt','w') as outf:
             write_statistics(name, outf, pars, fit_result)
 
             for nolig in range(2,5):
-                x = [];
-                y = [];
+                x = []
+                y = []
                 for ang in range(0,361,10):
                     x.append(ang)
                     d = {'angles' : np.full(nolig-1, ang)}
@@ -263,7 +263,7 @@ with open('randomFits.txt','w') as outf:
             plt.legend()
             plt.savefig('thio_discrete%r.png'%(end_diff))
 
-            parvals = pars.valuesdict();
+            parvals = pars.valuesdict()
             x_theta = []
             y_beta = []
             y_cos = []

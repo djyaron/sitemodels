@@ -6,6 +6,8 @@ Created on Mon Jul  6 15:20:47 2015
 """
 #%%
 import math
+from functools import partial
+
 import numpy as np
 import matplotlib.pyplot as plt
 from lmfit import minimize, Parameters, fit_report
@@ -80,27 +82,12 @@ def model2(dataOligomer, pars):
     return np.min(evals[0])
     
 
-def residual1(pars, x, data, eps_data=None):
-    res = []
-    for d in data:
-        exc  = d['exc']
-        excPred = model1(d, pars)
-        res.append(excPred - exc)
-    return np.asarray(res)
 
-def residual2(pars, x, data, eps_data=None):
+def residual(model, pars, x, data, eps_data=None):
     res = []
     for d in data:
         exc  = d['exc']
-        excPred = model2(d, pars)
-        res.append(excPred - exc)
-    return np.asarray(res)
-
-def residual3(pars, x, data, eps_data=None):
-    res = []
-    for d in data:
-        exc  = d['exc']
-        excPred = model3(d, pars)
+        excPred = model(d, pars)
         res.append(excPred - exc)
     return np.asarray(res)
 
@@ -167,9 +154,8 @@ with open('randomFits.txt','w') as outf:
                 pars.add('beta',     value=-1.0, vary=True)
                 pars.add('delta',    value= 0.0, vary=end_diff)
                 pars.add('npow',     value=cos_pow, vary=False)
-                
-                #b = residual1(pars, [], uniformData)
-                
+
+                residual1 = partial(residual, model1)
                 fit_result = minimize(residual1, pars, args=([], fitData, []))
                 if end_diff == False:
                     parvals = pars.valuesdict();
@@ -215,10 +201,9 @@ with open('randomFits.txt','w') as outf:
             pars.add('beta',     value= 0.0, vary=False)
             pars.add('beta2',    value=-1.0, vary=True)
             pars.add('delta',    value= 0.0, vary=end_diff)
-            
-            
-            #b = residual1(pars, [], uniformData)
-            
+
+
+            residual3 = partial(residual, model3)
             fit_result = minimize(residual3, pars, args=([], fitData, []))
             parvals = pars.valuesdict();
             beta_mod3 = (parvals['const'], parvals['beta'], parvals['beta2'])
@@ -264,9 +249,8 @@ with open('randomFits.txt','w') as outf:
             for i in range(0,181,10):
                 pars.add('beta%i'%i, value = -0.8*np.abs(math.cos(i*3.14/180.0)), vary= True)
             pars.add('delta',    value= 0.0, vary=end_diff)
-            
-            #b = residual1(pars, [], uniformData)
-            
+
+            residual2 = partial(residual, model2)
             fit_result = minimize(residual2, pars, args=([], fitData, []))
             outf.write('Thiophene discrete: delta varied=%r\n'%end_diff)
             outf.write(fit_report(pars))

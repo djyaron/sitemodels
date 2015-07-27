@@ -68,7 +68,7 @@ def model2(dataOligomer, pars):
     alpha = parvals['alpha']
     endRaise = parvals['delta']
     betas = []
-    for i in range(0, 181, 10):
+    for i in xrange(0, 181, 10):
         betas.append(parvals['beta%i' % i])
     angs = dataOligomer['angles']
     oligLength = angs.size + 1
@@ -125,8 +125,8 @@ with open('randomFits.txt', 'w') as outf:
 
     # angles is list of angles for the oligomer
     fitData = []
-    for angLength in range(1, 4):
-        for angIndex in range(exc[:, 0].size):
+    for angLength in xrange(1, 4):
+        for angIndex in xrange(exc[:, 0].size):
             if (np.abs(np.cos(np.deg2rad(exc[angIndex, 0]))) > 0.05):
                 fitData.append(
                     {'angles': np.full(angLength, exc[angIndex, 0]),
@@ -152,7 +152,7 @@ with open('randomFits.txt', 'w') as outf:
                 plt.clf()
                 fmts = ['r', 'b', 'g']
 
-                for i in range(1, 4):
+                for i in xrange(1, 4):
                     plt.plot(exc[:, 0], exc[:, i], fmts[i - 1] +
                              'o-', label='N=%d TDDFT' % (i + 1))
 
@@ -179,10 +179,10 @@ with open('randomFits.txt', 'w') as outf:
                     cos_pow, end_diff)
                 write_statistics(name, outf, pars, fit_result)
 
-                for nolig in range(2, 5):
+                for nolig in xrange(2, 5):
                     x = []
                     y = []
-                    for ang in range(0, 361, 1):
+                    for ang in xrange(0, 361, 1):
                         x.append(ang)
                         d = {'angles': np.full(nolig - 1, ang)}
                         y.append(model1(d, pars))
@@ -197,7 +197,7 @@ with open('randomFits.txt', 'w') as outf:
             plt.clf()
             fmts = ['r', 'b', 'g']
 
-            for i in range(1, 4):
+            for i in xrange(1, 4):
                 plt.plot(exc[:, 0], exc[:, i], fmts[i - 1] +
                          'o-', label='N=%d TDDFT' % (i + 1))
 
@@ -221,10 +221,10 @@ with open('randomFits.txt', 'w') as outf:
             name = 'Thiophene model3: delta varied=%r\n' % end_diff
             write_statistics(name, outf, pars, fit_result)
 
-            for nolig in range(2, 5):
+            for nolig in xrange(2, 5):
                 x = []
                 y = []
-                for ang in range(0, 361, 10):
+                for ang in xrange(0, 361, 10):
                     x.append(ang)
                     d = {'angles': np.full(nolig - 1, ang)}
                     y.append(model3(d, pars))
@@ -240,7 +240,7 @@ with open('randomFits.txt', 'w') as outf:
             plt.clf()
             fmts = ['r', 'b', 'g']
 
-            for i in range(1, 4):
+            for i in xrange(1, 4):
                 plt.plot(exc[:, 0], exc[:, i], fmts[i - 1] +
                          'o-', label='N=%d TDDFT' % (i + 1))
 
@@ -251,7 +251,7 @@ with open('randomFits.txt', 'w') as outf:
             # Set up paramters
             pars = Parameters()
             pars.add('alpha',    value=5.0, vary=True)
-            for i in range(0, 181, 10):
+            for i in xrange(0, 181, 10):
                 pars.add('beta%i' % i, value=-0.8 *
                          np.abs(math.cos(i * 3.14 / 180.0)), vary=True)
             pars.add('delta',    value=0.0, vary=end_diff)
@@ -262,10 +262,10 @@ with open('randomFits.txt', 'w') as outf:
             name = 'Thiophene discrete: delta varied=%r\n' % end_diff
             write_statistics(name, outf, pars, fit_result)
 
-            for nolig in range(2, 5):
+            for nolig in xrange(2, 5):
                 x = []
                 y = []
-                for ang in range(0, 361, 10):
+                for ang in xrange(0, 361, 10):
                     x.append(ang)
                     d = {'angles': np.full(nolig - 1, ang)}
                     y.append(model2(d, pars))
@@ -279,7 +279,7 @@ with open('randomFits.txt', 'w') as outf:
             y_beta = []
             y_cos = []
             y_cos2 = []
-            for i in range(0, 181, 10):
+            for i in xrange(0, 181, 10):
                 x_theta.append(i)
                 y_beta.append(parvals['beta%i' % i])
             y_cos = beta_res[0] * np.abs(np.cos(np.deg2rad(x_theta)))

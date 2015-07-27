@@ -91,6 +91,17 @@ def residual(model, pars, x, data, eps_data=None):
     return np.asarray(res)
 
 
+def write_statistics(name, outf, pars, fit_result):
+    outf.write(name)
+    outf.write(fit_report(pars))
+    outf.write('\n')
+    outf.write('Norm residuals is ' + repr(LA.norm(fit_result.residual)))
+    outf.write('\n')
+    outf.write('Mean absolute error ' + repr(np.mean(np.abs(fit_result.residual))))
+    outf.write('\n')
+    outf.write('-------------\n')
+
+
 """
 
 ang = exc[:,0]
@@ -159,14 +170,8 @@ with open('randomFits.txt','w') as outf:
                     parvals = pars.valuesdict();
                     beta_res[cos_pow-1] = parvals['beta']
 
-                outf.write('Thiophene: cos power=%d, delta varied=%r\n'%(cos_pow,end_diff))
-                outf.write(fit_report(pars))
-                outf.write('\n')
-                outf.write('Norm residuals is ' + repr(LA.norm(fit_result.residual)))
-                outf.write('\n')
-                outf.write('\n')
-                outf.write('Mean absolute error ' + repr(np.mean(np.abs(fit_result.residual))))
-                outf.write('-------------\n')
+                name = 'Thiophene: cos power=%d, delta varied=%r\n' % (cos_pow,end_diff)
+                write_statistics(name, outf, pars, fit_result)
 
                 for nolig in range(2,5):
                     x = [];
@@ -206,15 +211,8 @@ with open('randomFits.txt','w') as outf:
             parvals = pars.valuesdict();
             beta_mod3 = (parvals['const'], parvals['beta'], parvals['beta2'])
 
-
-            outf.write('Thiophene model3: delta varied=%r\n'%end_diff)
-            outf.write(fit_report(pars))
-            outf.write('\n')
-            outf.write('Norm residuals is ' + repr(LA.norm(fit_result.residual)))
-            outf.write('\n')
-            outf.write('Mean absolute error ' + repr(np.mean(np.abs(fit_result.residual))))
-            outf.write('\n')
-            outf.write('-------------\n')
+            name = 'Thiophene model3: delta varied=%r\n' % end_diff
+            write_statistics(name, outf, pars, fit_result)
 
             for nolig in range(2,5):
                 x = [];
@@ -250,14 +248,9 @@ with open('randomFits.txt','w') as outf:
 
             residual2 = partial(residual, model2)
             fit_result = minimize(residual2, pars, args=([], fitData, []))
-            outf.write('Thiophene discrete: delta varied=%r\n'%end_diff)
-            outf.write(fit_report(pars))
-            outf.write('\n')
-            outf.write('Norm residuals is ' + repr(LA.norm(fit_result.residual)))
-            outf.write('\n')
-            outf.write('Mean absolute error ' + repr(np.mean(np.abs(fit_result.residual))))
-            outf.write('\n')
-            outf.write('-------------\n')
+
+            name = 'Thiophene discrete: delta varied=%r\n' % end_diff
+            write_statistics(name, outf, pars, fit_result)
 
             for nolig in range(2,5):
                 x = [];

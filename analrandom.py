@@ -22,10 +22,10 @@ def model1(dataOligomer, pars):
     npow = parvals['npow']
     angs = dataOligomer['angles']
     oligLength = angs.size + 1
-    coupling = beta *   np.abs(np.power(np.cos(np.deg2rad(angs)), npow)) 
+    coupling = beta *   np.abs(np.power(np.cos(np.deg2rad(angs)), npow))
     hamil = np.diag( np.full(oligLength   , alpha), 0 ) + \
             np.diag( coupling                     , -1)  + \
-            np.diag( coupling                     , 1) 
+            np.diag( coupling                     , 1)
     hamil[0,0]   += endRaise
     hamil[-1,-1] += endRaise
     evals = LA.eig(hamil)
@@ -42,16 +42,16 @@ def model3(dataOligomer, pars):
     oligLength = angs.size + 1
     coupling = const \
         +beta * np.abs(np.cos(np.deg2rad(angs))) \
-        +beta2 *   np.power(np.cos(np.deg2rad(angs)), 2) 
+        +beta2 *   np.power(np.cos(np.deg2rad(angs)), 2)
     hamil = np.diag( np.full(oligLength   , alpha), 0 ) + \
             np.diag( coupling                     , -1)  + \
-            np.diag( coupling                     , 1) 
+            np.diag( coupling                     , 1)
     hamil[0,0]   += endRaise
     hamil[-1,-1] += endRaise
     evals = LA.eig(hamil)
     return np.min(evals[0])
 
-  
+
 def angle_to_coupling(theta,betas):
     if theta > 180.1:
         theta = abs(theta-360)
@@ -75,12 +75,11 @@ def model2(dataOligomer, pars):
         coupling.append(angle_to_coupling(ang, betas))
     hamil = np.diag( np.full(oligLength   , alpha), 0 ) + \
             np.diag( coupling                     , -1)  + \
-            np.diag( coupling                     , 1) 
+            np.diag( coupling                     , 1)
     hamil[0,0]   += endRaise
     hamil[-1,-1] += endRaise
     evals = LA.eig(hamil)
     return np.min(evals[0])
-    
 
 
 def residual(model, pars, x, data, eps_data=None):
@@ -92,9 +91,8 @@ def residual(model, pars, x, data, eps_data=None):
     return np.asarray(res)
 
 
-
 """
-             
+
 ang = exc[:,0]
 e2  = exc[:,1]
 e3  = exc[:,2]
@@ -116,7 +114,7 @@ with open('randomFits.txt','w') as outf:
         for angIndex in range( exc[:,0].size ):
             if ( np.abs(np.cos(np.deg2rad(exc[angIndex,0]))) > 0.05):
                 fitData.append(
-                    {'angles' : np.full(angLength, exc[angIndex,0]), 
+                    {'angles' : np.full(angLength, exc[angIndex,0]),
                      'exc'    : exc[angIndex, angLength]}
                      )
     for row in ran3:
@@ -134,20 +132,20 @@ with open('randomFits.txt','w') as outf:
     if do_cos_fits:
         for cos_pow in [1 , 2]:
             for end_diff in [False]:
-            
+
                 plt.figure(1)
                 plt.clf()
                 fmts = ['r','b','g']
-                
+
                 for i in range(1,4):
                     plt.plot(exc[:,0],exc[:,i], fmts[i-1]+'o-', label='N=%d TDDFT'%(i+1) )
-                
+
                 plt.ylabel('Excitation energy')
                 plt.xlabel('Angle')
                 plt.title('fit random geoms using cosine to power %d end site raised: %r'%(cos_pow , end_diff))
                 plt.title('Coupling = cosine to power %d '%cos_pow)
-                
-                                 
+
+
                 # Set up paramters
                 pars = Parameters()
                 pars.add('alpha',    value= 5.0, vary=True)
@@ -160,7 +158,7 @@ with open('randomFits.txt','w') as outf:
                 if end_diff == False:
                     parvals = pars.valuesdict();
                     beta_res[cos_pow-1] = parvals['beta']
-                
+
                 outf.write('Thiophene: cos power=%d, delta varied=%r\n'%(cos_pow,end_diff))
                 outf.write(fit_report(pars))
                 outf.write('\n')
@@ -169,7 +167,7 @@ with open('randomFits.txt','w') as outf:
                 outf.write('\n')
                 outf.write('Mean absolute error ' + repr(np.mean(np.abs(fit_result.residual))))
                 outf.write('-------------\n')
-                
+
                 for nolig in range(2,5):
                     x = [];
                     y = [];
@@ -182,18 +180,18 @@ with open('randomFits.txt','w') as outf:
                 plt.savefig('thio_rg_cos%d%r.png'%(cos_pow,end_diff))
     if do_model3:
         for end_diff in [False]:
-        
+
             plt.figure(1)
             plt.clf()
             fmts = ['r','b','g']
-            
+
             for i in range(1,4):
                 plt.plot(exc[:,0],exc[:,i], fmts[i-1]+'o-', label='N=%d TDDFT'%(i+1) )
-            
+
             plt.ylabel('Excitation energy')
             plt.xlabel('Angle')
             plt.title('Coupling = const + beta2 cos^2(theta) \n')
-            
+
             # Set up paramters
             pars = Parameters()
             pars.add('alpha',    value= 5.0, vary=True)
@@ -207,8 +205,8 @@ with open('randomFits.txt','w') as outf:
             fit_result = minimize(residual3, pars, args=([], fitData, []))
             parvals = pars.valuesdict();
             beta_mod3 = (parvals['const'], parvals['beta'], parvals['beta2'])
-            
-            
+
+
             outf.write('Thiophene model3: delta varied=%r\n'%end_diff)
             outf.write(fit_report(pars))
             outf.write('\n')
@@ -217,7 +215,7 @@ with open('randomFits.txt','w') as outf:
             outf.write('Mean absolute error ' + repr(np.mean(np.abs(fit_result.residual))))
             outf.write('\n')
             outf.write('-------------\n')
-            
+
             for nolig in range(2,5):
                 x = [];
                 y = [];
@@ -228,21 +226,21 @@ with open('randomFits.txt','w') as outf:
                 plt.plot(x,y, fmts[nolig-2]+'--', label='N=%d model'%nolig)
             plt.legend()
             plt.savefig('thio_mod3%r.png'%(end_diff))
-        
+
     if do_discrete_fits:
         for end_diff in [False]:
-        
+
             plt.figure(1)
             plt.clf()
             fmts = ['r','b','g']
-            
+
             for i in range(1,4):
                 plt.plot(exc[:,0],exc[:,i], fmts[i-1]+'o-', label='N=%d TDDFT'%(i+1) )
-            
+
             plt.ylabel('Excitation energy')
             plt.xlabel('Angle')
             plt.title('Treating beta at each angle as a separate parameter \n')
-            
+
             # Set up paramters
             pars = Parameters()
             pars.add('alpha',    value= 5.0, vary=True)
@@ -260,7 +258,7 @@ with open('randomFits.txt','w') as outf:
             outf.write('Mean absolute error ' + repr(np.mean(np.abs(fit_result.residual))))
             outf.write('\n')
             outf.write('-------------\n')
-            
+
             for nolig in range(2,5):
                 x = [];
                 y = [];
@@ -291,4 +289,4 @@ with open('randomFits.txt','w') as outf:
             plt.plot(x_theta,y_cos,'b-')
             plt.plot(x_theta,y_cos2,'g-')
             plt.plot(x_theta,y_mod3,'k-')
-            
+

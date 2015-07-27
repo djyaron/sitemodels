@@ -118,35 +118,34 @@ do_model3 = True
 fmts = ['r', 'b', 'g']
 
 
+exc = np.loadtxt(open('thio_uniform.csv', 'r'), delimiter=",")
+ran3 = np.loadtxt(open('thio_random_3.csv', 'r'),
+                  delimiter=",", skiprows=1)
+ran4 = np.loadtxt(open('thio_random_4.csv', 'r'),
+                  delimiter=",", skiprows=1)
+
+# angles is list of angles for the oligomer
+fitData = []
+for angLength in xrange(1, 4):
+    for angIndex in xrange(exc[:, 0].size):
+        if (np.abs(np.cos(np.deg2rad(exc[angIndex, 0]))) > 0.05):
+            fitData.append(
+                {'angles': np.full(angLength, exc[angIndex, 0]),
+                 'exc': exc[angIndex, angLength]}
+            )
+for row in ran3:
+    fitData.append(
+        {'angles': row[:2],
+         'exc': row[2]}
+    )
+for row in ran4:
+    fitData.append(
+        {'angles': row[:3],
+         'exc': row[3]}
+    )
+
+beta_res = [0, 0]
 with open('randomFits.txt', 'w') as outf:
-
-    exc = np.loadtxt(open('thio_uniform.csv', 'r'), delimiter=",")
-    ran3 = np.loadtxt(open('thio_random_3.csv', 'r'),
-                      delimiter=",", skiprows=1)
-    ran4 = np.loadtxt(open('thio_random_4.csv', 'r'),
-                      delimiter=",", skiprows=1)
-
-    # angles is list of angles for the oligomer
-    fitData = []
-    for angLength in xrange(1, 4):
-        for angIndex in xrange(exc[:, 0].size):
-            if (np.abs(np.cos(np.deg2rad(exc[angIndex, 0]))) > 0.05):
-                fitData.append(
-                    {'angles': np.full(angLength, exc[angIndex, 0]),
-                     'exc': exc[angIndex, angLength]}
-                )
-    for row in ran3:
-        fitData.append(
-            {'angles': row[:2],
-             'exc': row[2]}
-        )
-    for row in ran4:
-        fitData.append(
-            {'angles': row[:3],
-             'exc': row[3]}
-        )
-    beta_res = [0, 0]
-    model3_res = [0, 0]
     if do_cos_fits:
         for cos_pow in [1, 2]:
             for end_diff in [False]:

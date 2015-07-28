@@ -12,6 +12,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from lmfit import minimize, Parameters, fit_report
 from numpy import linalg as LA
+from sklearn.cross_validation import KFold
+
 #%%
 
 
@@ -130,6 +132,26 @@ def plot_something(model, pars, exc, title="", filename="", interval=1):
     plt.savefig(filename)
 
 
+def cross_validate(model, fitData, pars, folds=5):
+    residual1 = partial(residual, model)
+    train_errors = []
+    test_errors = []
+    for i, (train_index, test_index) in enumerate(KFold(len(fitData),
+                                                        n_folds=folds,
+                                                        shuffle=True)):
+        trainData = [fitData[x] for x in train_index]
+        testData = [fitData[x] for x in test_index]
+
+        fit_result = minimize(residual1, pars, args=([], trainData, []))
+        train_errors.append(np.abs(fit_result.residual).mean())
+
+        errors = [model(d, pars) - d["exc"] for d in testData]
+        test_errors.append(np.abs(errors).mean())
+    print "Train:", np.mean(train_errors), "Test:", np.mean(test_errors)
+    return fit_result
+
+
+def cos_fits(fitData, exc, outf, end_diff=False):
     beta_res = [0, 0]
     for cos_pow in [1, 2]:
         # Set up paramters
@@ -139,8 +161,8 @@ def plot_something(model, pars, exc, title="", filename="", interval=1):
         pars.add('delta',    value=0.0, vary=end_diff)
         pars.add('npow',     value=cos_pow, vary=False)
 
-        residual1 = partial(residual, model1)
-        fit_result = minimize(residual1, pars, args=([], fitData, []))
+        fit_result = cross_validate(model1, fitData, pars)
+
         if not end_diff:
             parvals = pars.valuesdict()
             beta_res[cos_pow - 1] = parvals['beta']
@@ -163,8 +185,8 @@ def model3_fits(fitData, exc, outf, end_diff=False):
     pars.add('beta2',    value=-1.0, vary=True)
     pars.add('delta',    value=0.0, vary=end_diff)
 
-    residual3 = partial(residual, model3)
-    fit_result = minimize(residual3, pars, args=([], fitData, []))
+    fit_result = cross_validate(model3, fitData, pars)
+
     parvals = pars.valuesdict()
     beta_mod3 = (parvals['const'], parvals['beta'], parvals['beta2'])
 
@@ -185,8 +207,7 @@ def discrete_fits(fitData, exc, outf, end_diff=False):
                  np.abs(math.cos(i * 3.14 / 180.0)), vary=True)
     pars.add('delta',    value=0.0, vary=end_diff)
 
-    residual2 = partial(residual, model2)
-    fit_result = minimize(residual2, pars, args=([], fitData, []))
+    fit_result = cross_validate(model2, fitData, pars)
 
     name = 'Thiophene discrete: delta varied=%r\n' % end_diff
     write_statistics(name, outf, pars, fit_result)

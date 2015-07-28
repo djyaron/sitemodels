@@ -105,93 +105,10 @@ def write_statistics(name, outf, pars, fit_result):
     outf.write('-------------\n')
 
 
-"""
-
-ang = exc[:,0]
-e2  = exc[:,1]
-e3  = exc[:,2]
-e4  = exc[:,3]
-"""
-do_cos_fits = True
-do_discrete_fits = True
-do_model3 = True
-fmts = ['r', 'b', 'g']
-
-
-exc = np.loadtxt(open('thio_uniform.csv', 'r'), delimiter=",")
-ran3 = np.loadtxt(open('thio_random_3.csv', 'r'),
-                  delimiter=",", skiprows=1)
-ran4 = np.loadtxt(open('thio_random_4.csv', 'r'),
-                  delimiter=",", skiprows=1)
-
-# angles is list of angles for the oligomer
-fitData = []
-for angLength in xrange(1, 4):
-    for angIndex in xrange(exc[:, 0].size):
-        if (np.abs(np.cos(np.deg2rad(exc[angIndex, 0]))) > 0.05):
-            fitData.append(
-                {'angles': np.full(angLength, exc[angIndex, 0]),
-                 'exc': exc[angIndex, angLength]}
-            )
-for row in ran3:
-    fitData.append(
-        {'angles': row[:2],
-         'exc': row[2]}
-    )
-for row in ran4:
-    fitData.append(
-        {'angles': row[:3],
-         'exc': row[3]}
-    )
-
-beta_res = [0, 0]
-with open('randomFits.txt', 'w') as outf:
-    if do_cos_fits:
-        for cos_pow in [1, 2]:
-            for end_diff in [False]:
-
-                plt.figure(1)
-                plt.clf()
-
-                for i in xrange(1, 4):
-                    plt.plot(exc[:, 0], exc[:, i], fmts[i - 1] +
-                             'o-', label='N=%d TDDFT' % (i + 1))
-
-                plt.ylabel('Excitation energy')
-                plt.xlabel('Angle')
-                plt.title('fit random geoms using cosine to power %d end site raised: %r' % (
-                    cos_pow, end_diff))
-                plt.title('Coupling = cosine to power %d ' % cos_pow)
-
-                # Set up paramters
-                pars = Parameters()
-                pars.add('alpha',    value=5.0, vary=True)
-                pars.add('beta',     value=-1.0, vary=True)
-                pars.add('delta',    value=0.0, vary=end_diff)
-                pars.add('npow',     value=cos_pow, vary=False)
-
-                residual1 = partial(residual, model1)
-                fit_result = minimize(residual1, pars, args=([], fitData, []))
-                if end_diff == False:
-                    parvals = pars.valuesdict()
-                    beta_res[cos_pow - 1] = parvals['beta']
-
-                name = 'Thiophene: cos power=%d, delta varied=%r\n' % (
-                    cos_pow, end_diff)
-                write_statistics(name, outf, pars, fit_result)
-
-                for nolig in xrange(2, 5):
-                    x = []
-                    y = []
-                    for ang in xrange(0, 361, 1):
-                        x.append(ang)
-                        d = {'angles': np.full(nolig - 1, ang)}
-                        y.append(model1(d, pars))
-                    plt.plot(x, y, fmts[nolig - 2] + '--',
-                             label='N=%d model' % nolig)
-                plt.legend()
-                plt.savefig('thio_rg_cos%d%r.png' % (cos_pow, end_diff))
-    if do_model3:
+def cos_fits(fitData, outf):
+    fmts = ['r', 'b', 'g']
+    beta_res = [0, 0]
+    for cos_pow in [1, 2]:
         for end_diff in [False]:
 
             plt.figure(1)
@@ -203,92 +120,188 @@ with open('randomFits.txt', 'w') as outf:
 
             plt.ylabel('Excitation energy')
             plt.xlabel('Angle')
-            plt.title('Coupling = const + beta2 cos^2(theta) \n')
+            plt.title('fit random geoms using cosine to power %d end site raised: %r' % (
+                cos_pow, end_diff))
+            plt.title('Coupling = cosine to power %d ' % cos_pow)
 
             # Set up paramters
             pars = Parameters()
             pars.add('alpha',    value=5.0, vary=True)
-            pars.add('const',    value=0.0, vary=True)
-            pars.add('beta',     value=0.0, vary=False)
-            pars.add('beta2',    value=-1.0, vary=True)
+            pars.add('beta',     value=-1.0, vary=True)
             pars.add('delta',    value=0.0, vary=end_diff)
+            pars.add('npow',     value=cos_pow, vary=False)
 
-            residual3 = partial(residual, model3)
-            fit_result = minimize(residual3, pars, args=([], fitData, []))
-            parvals = pars.valuesdict()
-            beta_mod3 = (parvals['const'], parvals['beta'], parvals['beta2'])
+            residual1 = partial(residual, model1)
+            fit_result = minimize(residual1, pars, args=([], fitData, []))
+            if not end_diff:
+                parvals = pars.valuesdict()
+                beta_res[cos_pow - 1] = parvals['beta']
 
-            name = 'Thiophene model3: delta varied=%r\n' % end_diff
+            name = 'Thiophene: cos power=%d, delta varied=%r\n' % (
+                cos_pow, end_diff)
             write_statistics(name, outf, pars, fit_result)
 
             for nolig in xrange(2, 5):
                 x = []
                 y = []
-                for ang in xrange(0, 361, 10):
+                for ang in xrange(0, 361, 1):
                     x.append(ang)
                     d = {'angles': np.full(nolig - 1, ang)}
-                    y.append(model3(d, pars))
+                    y.append(model1(d, pars))
                 plt.plot(x, y, fmts[nolig - 2] + '--',
                          label='N=%d model' % nolig)
             plt.legend()
-            plt.savefig('thio_mod3%r.png' % (end_diff))
+            plt.savefig('thio_rg_cos%d%r.png' % (cos_pow, end_diff))
+    return beta_res
 
-    if do_discrete_fits:
-        for end_diff in [False]:
 
-            plt.figure(1)
-            plt.clf()
+def model3_fits(fitData, outf):
+    fmts = ['r', 'b', 'g']
+    for end_diff in [False]:
+        plt.figure(1)
+        plt.clf()
 
-            for i in xrange(1, 4):
-                plt.plot(exc[:, 0], exc[:, i], fmts[i - 1] +
-                         'o-', label='N=%d TDDFT' % (i + 1))
+        for i in xrange(1, 4):
+            plt.plot(exc[:, 0], exc[:, i], fmts[i - 1] +
+                     'o-', label='N=%d TDDFT' % (i + 1))
 
-            plt.ylabel('Excitation energy')
-            plt.xlabel('Angle')
-            plt.title('Treating beta at each angle as a separate parameter \n')
+        plt.ylabel('Excitation energy')
+        plt.xlabel('Angle')
+        plt.title('Coupling = const + beta2 cos^2(theta) \n')
 
-            # Set up paramters
-            pars = Parameters()
-            pars.add('alpha',    value=5.0, vary=True)
-            for i in xrange(0, 181, 10):
-                pars.add('beta%i' % i, value=-0.8 *
-                         np.abs(math.cos(i * 3.14 / 180.0)), vary=True)
-            pars.add('delta',    value=0.0, vary=end_diff)
+        # Set up paramters
+        pars = Parameters()
+        pars.add('alpha',    value=5.0, vary=True)
+        pars.add('const',    value=0.0, vary=True)
+        pars.add('beta',     value=0.0, vary=False)
+        pars.add('beta2',    value=-1.0, vary=True)
+        pars.add('delta',    value=0.0, vary=end_diff)
 
-            residual2 = partial(residual, model2)
-            fit_result = minimize(residual2, pars, args=([], fitData, []))
+        residual3 = partial(residual, model3)
+        fit_result = minimize(residual3, pars, args=([], fitData, []))
+        parvals = pars.valuesdict()
+        beta_mod3 = (parvals['const'], parvals['beta'], parvals['beta2'])
 
-            name = 'Thiophene discrete: delta varied=%r\n' % end_diff
-            write_statistics(name, outf, pars, fit_result)
+        name = 'Thiophene model3: delta varied=%r\n' % end_diff
+        write_statistics(name, outf, pars, fit_result)
 
-            for nolig in xrange(2, 5):
-                x = []
-                y = []
-                for ang in xrange(0, 361, 10):
-                    x.append(ang)
-                    d = {'angles': np.full(nolig - 1, ang)}
-                    y.append(model2(d, pars))
-                plt.plot(x, y, fmts[nolig - 2] + '--',
-                         label='N=%d model' % nolig)
-            plt.legend()
-            plt.savefig('thio_discrete%r.png' % (end_diff))
+        for nolig in xrange(2, 5):
+            x = []
+            y = []
+            for ang in xrange(0, 361, 10):
+                x.append(ang)
+                d = {'angles': np.full(nolig - 1, ang)}
+                y.append(model3(d, pars))
+            plt.plot(x, y, fmts[nolig - 2] + '--',
+                     label='N=%d model' % nolig)
+        plt.legend()
+        plt.savefig('thio_mod3%r.png' % (end_diff))
+    return beta_mod3
 
-            parvals = pars.valuesdict()
-            x_theta = []
-            y_beta = []
-            y_cos = []
-            y_cos2 = []
-            for i in xrange(0, 181, 10):
-                x_theta.append(i)
-                y_beta.append(parvals['beta%i' % i])
-            y_cos = beta_res[0] * np.abs(np.cos(np.deg2rad(x_theta)))
-            y_cos2 = beta_res[0] * np.power(np.cos(np.deg2rad(x_theta)), 2)
-            y_mod3 = beta_mod3[0] \
-                + beta_mod3[1] * np.abs(np.cos(np.deg2rad(x_theta))) \
-                + beta_mod3[2] * np.power(np.cos(np.deg2rad(x_theta)), 2)
-            plt.figure(2)
-            plt.title('Comparision of beta(theta) across models\n')
-            plt.plot(x_theta, y_beta, 'ro')
-            plt.plot(x_theta, y_cos, 'b-')
-            plt.plot(x_theta, y_cos2, 'g-')
-            plt.plot(x_theta, y_mod3, 'k-')
+
+def discrete_fits(fitData, outf):
+    fmts = ['r', 'b', 'g']
+    for end_diff in [False]:
+        plt.figure(1)
+        plt.clf()
+
+        for i in xrange(1, 4):
+            plt.plot(exc[:, 0], exc[:, i], fmts[i - 1] +
+                     'o-', label='N=%d TDDFT' % (i + 1))
+
+        plt.ylabel('Excitation energy')
+        plt.xlabel('Angle')
+        plt.title('Treating beta at each angle as a separate parameter \n')
+
+        # Set up paramters
+        pars = Parameters()
+        pars.add('alpha',    value=5.0, vary=True)
+        for i in xrange(0, 181, 10):
+            pars.add('beta%i' % i, value=-0.8 *
+                     np.abs(math.cos(i * 3.14 / 180.0)), vary=True)
+        pars.add('delta',    value=0.0, vary=end_diff)
+
+        residual2 = partial(residual, model2)
+        fit_result = minimize(residual2, pars, args=([], fitData, []))
+
+        name = 'Thiophene discrete: delta varied=%r\n' % end_diff
+        write_statistics(name, outf, pars, fit_result)
+
+        for nolig in xrange(2, 5):
+            x = []
+            y = []
+            for ang in xrange(0, 361, 10):
+                x.append(ang)
+                d = {'angles': np.full(nolig - 1, ang)}
+                y.append(model2(d, pars))
+            plt.plot(x, y, fmts[nolig - 2] + '--',
+                     label='N=%d model' % nolig)
+        plt.legend()
+        plt.savefig('thio_discrete%r.png' % (end_diff))
+    return pars
+
+
+
+
+if __name__ == "__main__":
+    """
+    ang = exc[:,0]
+    e2  = exc[:,1]
+    e3  = exc[:,2]
+    e4  = exc[:,3]
+    """
+    exc = np.loadtxt(open('thio_uniform.csv', 'r'), delimiter=",")
+    ran3 = np.loadtxt(open('thio_random_3.csv', 'r'), delimiter=",", skiprows=1)
+    ran4 = np.loadtxt(open('thio_random_4.csv', 'r'), delimiter=",", skiprows=1)
+
+    # angles is list of angles for the oligomer
+    fitData = []
+    for angLength in xrange(1, 4):
+        for angIndex in xrange(exc[:, 0].size):
+            if (np.abs(np.cos(np.deg2rad(exc[angIndex, 0]))) > 0.05):
+                fitData.append(
+                    {'angles': np.full(angLength, exc[angIndex, 0]),
+                     'exc': exc[angIndex, angLength]}
+                )
+    for row in ran3:
+        fitData.append(
+            {'angles': row[:2],
+             'exc': row[2]}
+        )
+    for row in ran4:
+        fitData.append(
+            {'angles': row[:3],
+             'exc': row[3]}
+        )
+
+    do_cos_fits = True
+    do_discrete_fits = True
+    do_model3 = True
+    with open('randomFits.txt', 'w') as outf:
+        if do_cos_fits:
+            beta_res = cos_fits(fitData, outf)
+        if do_model3:
+            beta_mod3 = model3_fits(fitData, outf)
+        if do_discrete_fits:
+            pars = discrete_fits(fitData, outf)
+
+        parvals = pars.valuesdict()
+        x_theta = []
+        y_beta = []
+        y_cos = []
+        y_cos2 = []
+        for i in xrange(0, 181, 10):
+            x_theta.append(i)
+            y_beta.append(parvals['beta%i' % i])
+        y_cos = beta_res[0] * np.abs(np.cos(np.deg2rad(x_theta)))
+        y_cos2 = beta_res[0] * np.power(np.cos(np.deg2rad(x_theta)), 2)
+        y_mod3 = beta_mod3[0] \
+            + beta_mod3[1] * np.abs(np.cos(np.deg2rad(x_theta))) \
+            + beta_mod3[2] * np.power(np.cos(np.deg2rad(x_theta)), 2)
+        plt.figure(2)
+        plt.title('Comparision of beta(theta) across models\n')
+        plt.plot(x_theta, y_beta, 'ro')
+        plt.plot(x_theta, y_cos, 'b-')
+        plt.plot(x_theta, y_cos2, 'g-')
+        plt.plot(x_theta, y_mod3, 'k-')
+        plt.show()

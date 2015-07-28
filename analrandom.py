@@ -148,6 +148,7 @@ def cross_validate(model, fitData, pars, folds=5):
         errors = [model(d, pars) - d["exc"] for d in testData]
         test_errors.append(np.abs(errors).mean())
     print "Train:", np.mean(train_errors), "Test:", np.mean(test_errors)
+    fit_result = minimize(residual1, pars, args=([], fitData, []))
     return fit_result
 
 

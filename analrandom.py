@@ -57,12 +57,9 @@ def model3(dataOligomer, pars):
 
 
 def angle_to_coupling(theta, betas):
-    if theta > 180.1:
-        theta = abs(theta - 360)
-    itheta = int(math.floor(round(theta / 10)))
-    # print itheta
-    # print betas
-    return betas[itheta]
+    theta[theta > 180.1] = np.abs(theta[theta > 180.1] - 360)
+    itheta = (theta / 10).astype(int)
+    return np.array(betas)[itheta]
 
 
 def model2(dataOligomer, pars):
@@ -74,9 +71,9 @@ def model2(dataOligomer, pars):
         betas.append(parvals['beta%i' % i])
     angs = dataOligomer['angles']
     oligLength = angs.size + 1
-    coupling = []
-    for ang in angs:
-        coupling.append(angle_to_coupling(ang, betas))
+
+    coupling = angle_to_coupling(angs, betas)
+
     hamil = np.diag( np.full(oligLength   , alpha), 0 ) + \
         np.diag( coupling                     , -1)  + \
         np.diag(coupling, 1)
@@ -216,8 +213,6 @@ def discrete_fits(fitData, exc, outf, end_diff=False):
     title = "Treating beta at each angle as a separate parameter \n"
     plot_something(model2, pars, exc, title=title, filename='thio_discrete%r.png' % (end_diff), interval=10)
     return pars
-
-
 
 
 if __name__ == "__main__":

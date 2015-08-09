@@ -108,27 +108,26 @@ def write_statistics(name, outf, pars, fit_result):
 def plot_something(model, pars, exc, title="", filename="", interval=1):
     plt.figure(1)
     plt.clf()
-
+    angs = range(19)
     fmts = ['r', 'b', 'g']
     for i in xrange(1, 4):
-        plt.plot(exc[:, 0], exc[:, i], fmts[i - 1] +
+        plt.plot(exc[np.ix_(angs,[0])], exc[np.ix_(angs,[i])], fmts[i - 1] +
                  'o-', label='N=%d TDDFT' % (i + 1))
 
     plt.ylabel('Excitation energy')
     plt.xlabel('Angle')
-    plt.title(title)
+    #plt.title(title)
 
     for nolig in xrange(2, 5):
         x = []
         y = []
-        for ang in xrange(0, 361, interval):
+        for ang in xrange(0, 181, interval):
             x.append(ang)
             d = {'angles': np.full(nolig - 1, ang)}
             y.append(model(d, pars))
         plt.plot(x, y, fmts[nolig - 2] + '--', label='N=%d model' % nolig)
     plt.legend()
     plt.savefig(filename)
-
 
 def cross_validate(model, fitData, pars, outf, folds=5):
     residual1 = partial(residual, model)
@@ -181,7 +180,7 @@ def cos_fits(fitData, exc, outf, end_diff=False):
             cos_pow, end_diff)
         write_statistics(name, outf, pars, fit_result)
 
-        title = 'Coupling = cosine to power %d ' % cos_pow
+        #title = 'Coupling = cosine to power %d ' % cos_pow
         plot_something(model1, pars, exc, title=title, filename='thio_rg_cos%d%r.eps' % (cos_pow, end_diff))
     return beta_res
 
@@ -210,8 +209,8 @@ def model3_fits(fitData, exc, outf, c_included, beta_included, beta2_included, e
     name = 'Thiophene model3: delta varied=%r\n' % end_diff
     write_statistics(name, outf, pars, fit_result)
 
-    title = "Coupling = const + beta2 cos^2(theta) \n"
-    plot_something(model3, pars, exc, title=title, filename='thio_mod3%r_%r.eps' % (beta_included,end_diff))
+    #title = "Coupling = const + beta2 cos^2(theta) \n"
+    plot_something(model3, pars, exc, title="", filename='thio_mod3%r_%r_%r_%r.eps' % (c_included,beta_included,beta2_included,end_diff))
     return beta_mod3
 
 
@@ -235,8 +234,8 @@ def discrete_fits(fitData, exc, outf, end_diff=False):
     name = 'Thiophene discrete: delta varied=%r\n' % end_diff
     write_statistics(name, outf, pars, fit_result)
 
-    title = "Treating beta at each angle as a separate parameter \n"
-    plot_something(model2, pars, exc, title=title, filename='thio_discrete%r.eps' % (end_diff), interval=10)
+    #title = "Treating beta at each angle as a separate parameter \n"
+    plot_something(model2, pars, exc, title="", filename='thio_discrete%r.eps' % (end_diff), interval=10)
     return pars
 
 
@@ -294,21 +293,23 @@ if __name__ == "__main__":
 
             if do_discrete_fits:
                 pars = discrete_fits(fitData, exc, outf, delta_included)
-#%%
-parvals = pars.valuesdict()
-x_theta = []
-y_beta = []
-y_cos = []
-y_cos2 = []
-for i in xrange(0, 181, 10):
-    x_theta.append(i)
-    y_beta.append(parvals['beta%i' % i]) 
-plt.figure(2)
-plt.clf()
-plt.title('Comparision of beta(theta) across models\n')
-plt.plot(x_theta, y_beta, 'ro')
-plt.plot(x_theta, cos_form(cos1,x_theta), 'b-')
-plt.plot(x_theta, cos_form(cos2,x_theta), 'g-')
-plt.plot(x_theta, cos_form(cos3c,x_theta), 'k-')
-plt.show()
-plt.savefig('cosforms.eps')
+
+            parvals = pars.valuesdict()
+            x_theta = []
+            y_beta = []
+            y_cos = []
+            y_cos2 = []
+            for i in xrange(0, 181, 10):
+                x_theta.append(i)
+                yval = parvals['beta%i' % i]
+                yval = -np.abs(yval)
+                y_beta.append(yval) 
+            plt.figure(2)
+            plt.clf()
+            #plt.title('Comparision of beta(theta) across models\n')
+            plt.plot(x_theta, y_beta, 'ro')
+            plt.plot(x_theta, cos_form(cos1,x_theta), 'k-')
+            plt.plot(x_theta, cos_form(cos2,x_theta), 'b-')
+            plt.plot(x_theta, cos_form(cos2c,x_theta), 'g-')
+            plt.show()
+            plt.savefig('cosforms_%r.eps'%(delta_included))
